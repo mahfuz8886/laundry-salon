@@ -58,7 +58,16 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                
+                                @foreach ($purchase_datas as $item)
+                                       <tr>
+                                        <td> {{ $item['code']}} </td>
+                                        <td> {{ $item['item_name']}} </td>
+                                        <td> {{ $item['unit']}} </td>
+                                        <td> {{ $item['buy_quantity']}} </td>
+                                        <td> {{ $item['sale_quantity']}} </td>
+                                        <td> {{ $item['stock_quantity']}} </td>
+                                       </tr>
+                                @endforeach
                             </tbody>
                         </table>
                     </div>

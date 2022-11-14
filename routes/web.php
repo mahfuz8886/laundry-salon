@@ -253,6 +253,9 @@ Route::group(['as' => 'superadmin.', 'prefix' => 'superadmin', 'namespace' => 'S
     Route::get('/get-supplier/{id}', 'SupplierController@getsupplier')->name('getSupplier');
     Route::get('/details-supplier/{id}', 'SupplierController@details')->name('detailsSupplier');
     Route::post('/update-supplier', 'SupplierController@update')->name('updateSupplier');
+
+    // supplier ledger
+    Route::get('/supplier-ledger', 'SupplierController@supplierLedger')->name('supplierLedger');
     /*...........supplier section............*/
 
     /*...........discount section.............*/

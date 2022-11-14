@@ -642,4 +642,9 @@ return [
 	'sale_quantity' => 'Sale Quantity',
 	'stock_quantity' => 'Stock Quantity',
 	'this_month_advance_amount' => 'This Month Advance Amount',
+
+	'supplier_ledger' => 'Supplier Ledger',
+	'purchase_amount' => 'Purchase Amount',
+	'payment_date' => 'Payment Date',
+	'payment_amount' => 'Payment Amount',
 ];

@@ -125,6 +125,13 @@
                             </a>
                         </li>
                     @endcan
+                    @can('deliveryman')
+                        <li class="nav-item">
+                            <a href="{{ route('superadmin.supplierLedger') }}" class="nav-link @yield('supplier_ledger')">
+                                <p>@lang('common.supplier_ledger') </p>
+                            </a>
+                        </li>
+                    @endcan
                 </ul>
             </li>
         @endcan

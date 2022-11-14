@@ -31,18 +31,20 @@ use Illuminate\Support\Str;
 
 class SalonPurchaseController extends Controller
 {
-    public function addSalonItem() {
+    public function addSalonItem()
+    {
         $units = Unit::where('status', 1)->get();
         return view('backEnd.salon.item.add', compact('units'));
     }
 
-    public function storeSalonItem(Request $request) {
+    public function storeSalonItem(Request $request)
+    {
         // dd($request->all());
         $request->validate([
             'item_name' => 'required|unique:salon_items,name',
             'unit' => 'required',
             'image' => 'required | mimes:jpeg,jpg,png | max:1000',
-            'status' => 'required', 
+            'status' => 'required',
         ]);
 
         $storeData = new SalonItem();
@@ -58,40 +60,42 @@ class SalonPurchaseController extends Controller
         $storeData->status = $request->status;
         $storeData->save();
         $insId = $storeData->id;
-        if($insId) {
+        if ($insId) {
             Toastr::success('Item added successfully');
-        }else {
+        } else {
             Toastr::error('Something was wrong');
         }
 
         return redirect()->back();
-
     }
 
-    public function manageSalonItem(Request $request) {
+    public function manageSalonItem(Request $request)
+    {
         $items = SalonItem::orderBy('id', 'desc')->with('unit');
-                if($request->status != null) {
-                    $items = $items->where('status', $request->status);
-                }
-                if($request->name != null) {
-                    $items = $items->where('name', 'like', '%'.$request->name.'%');
-                }
-        
+        if ($request->status != null) {
+            $items = $items->where('status', $request->status);
+        }
+        if ($request->name != null) {
+            $items = $items->where('name', 'like', '%' . $request->name . '%');
+        }
+
         $items = $items->paginate(15);
         return view('backEnd.salon.item.manage', compact('items'));
     }
 
-    public function getSalonItem($id) {
+    public function getSalonItem($id)
+    {
         $item = SalonItem::where('id', $id)->first();
         $units = Unit::where('status', 1)->get();
-        return view('backEnd.salon.item.edit', compact('item','units'));;
+        return view('backEnd.salon.item.edit', compact('item', 'units'));;
     }
 
-    public function updateSalonItem(Request $request) {
+    public function updateSalonItem(Request $request)
+    {
         // dd($request->all());
         $request->validate([
-            'item_name' => 'required|unique:laundry_items,name,'.$request->rowId,
-            'unit' => 'required', 
+            'item_name' => 'required|unique:laundry_items,name,' . $request->rowId,
+            'unit' => 'required',
             'status' => 'required'
         ]);
 
@@ -108,10 +112,10 @@ class SalonPurchaseController extends Controller
         $storeData->status = $request->status;
         $storeData->save();
         $updId = $storeData->id;
-        if($updId) {
+        if ($updId) {
             Toastr::success('Item updated successfully');
             return redirect()->route('superadmin.salon.manageItem');
-        }else {
+        } else {
             Toastr::error('Something was wrong');
             return redirect()->back();
         }
@@ -119,33 +123,35 @@ class SalonPurchaseController extends Controller
 
     /*.................purchase section.................*/
 
-    public function addSalonPurchase() {
+    public function addSalonPurchase()
+    {
 
         $items = SalonItem::where('status', 1)->get();
         $units = Unit::where('status', 1)->get();
 
         $branches = CustomHelper::getUserBranch();
-        if($branches) {
+        if ($branches) {
             $allBranch = Hub::where('status', 1)->whereIn('id', $branches)->get();
-        }else {
+        } else {
             $allBranch = Hub::where('status', 1)->get();
         }
 
 
-        return view('backEnd.salon.purchase.add', compact('items','units','allBranch'));
+        return view('backEnd.salon.purchase.add', compact('items', 'units', 'allBranch'));
     }
 
-    public function storeSalonPurchase(Request $request) {
+    public function storeSalonPurchase(Request $request)
+    {
         // dd($request->all());
         $request->validate([
             'purchase_date' => 'required',
             'supplier' => 'required',
             'branch_id' => 'required',
-            'item' => 'required', 
+            'item' => 'required',
             // 'unit' => 'required', 
-            'buy_price' => 'required', 
-            'sale_price' => 'required', 
-            'quantity' => 'required', 
+            'buy_price' => 'required',
+            'sale_price' => 'required',
+            'quantity' => 'required',
             'paid' => 'required'
         ]);
 
@@ -166,29 +172,29 @@ class SalonPurchaseController extends Controller
         $quantities = $request->quantity;
         $quantityLength = sizeof($quantities);
 
-        for($i = 0; $i < $itemLength; $i++) {
+        for ($i = 0; $i < $itemLength; $i++) {
             $allSubtotal += $buyPrices[$i] * $quantities[$i];
         }
 
         $payable = $allSubtotal;
-        
+
         //check discount
-        if($request->discount) {
-            if(strpos($request->discount, '%')) {
+        if ($request->discount) {
+            if (strpos($request->discount, '%')) {
                 $temp = explode('%', $request->discount);
                 $discount = ($payable * $temp[0]) / 100;
-            }else {
+            } else {
                 $discount = $request->discount;
             }
         }
 
         $payable = $payable - $discount;
 
-        if($request->paid) {
+        if ($request->paid) {
             $paid = $request->paid;
         }
         $due = $payable - $paid;
-        
+
         $invNo = mt_rand(1000000, 9999999);
         //insert purchase 
         $store_purchase = new SalonPurchase();
@@ -204,10 +210,10 @@ class SalonPurchaseController extends Controller
         $store_purchase->status = 1;
         $store_purchase->save();
         $pinsId = $store_purchase->id;
-        if($pinsId) {
+        if ($pinsId) {
             //insert purchase item
 
-            for($i = 0; $i < $itemLength; $i++) {
+            for ($i = 0; $i < $itemLength; $i++) {
 
                 $itemInfo = SalonItem::where('id', $items[$i])->first();
 
@@ -222,10 +228,9 @@ class SalonPurchaseController extends Controller
                 $store_items->subtotal = $buyPrices[$i] * $quantities[$i];
                 $store_items->status = 1;
                 $store_items->save();
-
             }
 
-            for($i = 0; $i < $itemLength; $i++) {
+            for ($i = 0; $i < $itemLength; $i++) {
 
                 $itemInfo = SalonItem::where('id', $items[$i])->first();
 
@@ -267,57 +272,60 @@ class SalonPurchaseController extends Controller
             }
 
             Toastr::success('Purchased successfully');
-        }else {
+        } else {
             Toastr::error('Something was wrong');
         }
-        
+
         return redirect()->back();
     }
 
-    public function manageSalonPurchase(Request $request) {
+    public function manageSalonPurchase(Request $request)
+    {
         $branches = CustomHelper::getUserBranch();
         $purchases = SalonPurchase::where('status', 1);
-                if($branches) {
-                    $purchases = $purchases->whereIn('branch_id', $branches);
-                }
-                if($request->date_from != null) {
-                    $purchases = $purchases->where('purchase_date','>=', $request->date_from);
-                }
-                if($request->date_to != null) {
-                    $purchases = $purchases->where('purchase_date','<=', $request->date_to.'%');
-                }
-        
+        if ($branches) {
+            $purchases = $purchases->whereIn('branch_id', $branches);
+        }
+        if ($request->date_from != null) {
+            $purchases = $purchases->where('purchase_date', '>=', $request->date_from);
+        }
+        if ($request->date_to != null) {
+            $purchases = $purchases->where('purchase_date', '<=', $request->date_to . '%');
+        }
+
         $purchases = $purchases->with('branch')->paginate(15);
         return view('backEnd.salon.purchase.manage', compact('purchases'));
     }
 
-    public function getSalonPurchase($id) {
+    public function getSalonPurchase($id)
+    {
         $purchase = SalonPurchase::where('id', $id)->first();
         $pitems = SalonPurchaseItem::where('purchase_id', $id)->get();
         $items = SalonItem::where('status', 1)->get();
         $units = Unit::where('status', 1)->get();
 
         $branches = CustomHelper::getUserBranch();
-        if($branches) {
+        if ($branches) {
             $allBranch = Hub::where('status', 1)->whereIn('id', $branches)->get();
-        }else {
+        } else {
             $allBranch = Hub::where('status', 1)->get();
         }
 
-        return view('backEnd.salon.purchase.edit', compact('purchase','pitems','items','units','allBranch'));
+        return view('backEnd.salon.purchase.edit', compact('purchase', 'pitems', 'items', 'units', 'allBranch'));
     }
 
-    public function updateSalonPurchase(Request $request) {
+    public function updateSalonPurchase(Request $request)
+    {
         // dd($request->all());
         $request->validate([
             'purchase_date' => 'required',
             'supplier' => 'required',
             'branch_id' => 'required',
-            'item' => 'required', 
+            'item' => 'required',
             // 'unit' => 'required', 
-            'buy_price' => 'required', 
-            'sale_price' => 'required', 
-            'quantity' => 'required', 
+            'buy_price' => 'required',
+            'sale_price' => 'required',
+            'quantity' => 'required',
             'paid' => 'required'
         ]);
 
@@ -339,29 +347,29 @@ class SalonPurchaseController extends Controller
         $quantities = $request->quantity;
         $quantityLength = sizeof($quantities);
 
-        for($i = 0; $i < $itemLength; $i++) {
+        for ($i = 0; $i < $itemLength; $i++) {
             $allSubtotal += $buyPrices[$i] * $quantities[$i];
         }
 
         $payable = $allSubtotal;
-        
+
         //check discount
-        if($request->discount) {
-            if(strpos($request->discount, '%')) {
+        if ($request->discount) {
+            if (strpos($request->discount, '%')) {
                 $temp = explode('%', $request->discount);
                 $discount = ($payable * $temp[0]) / 100;
-            }else {
+            } else {
                 $discount = $request->discount;
             }
         }
 
         $payable = $payable - $discount;
 
-        if($request->paid) {
+        if ($request->paid) {
             $paid = $request->paid;
         }
         $due = $payable - $paid;
-        
+
         //update purchase 
         $store_purchase = SalonPurchase::where('id', $pid)->first();
         $store_purchase->supplier_id = $request->supplier;
@@ -374,15 +382,15 @@ class SalonPurchaseController extends Controller
         $store_purchase->due = $due;
         $store_purchase->save();
         $pinsId = $store_purchase->id;
-        if($pinsId) {
+        if ($pinsId) {
             //update purchase item
 
-            for($i = 0; $i < $itemLength; $i++) {
-                
+            for ($i = 0; $i < $itemLength; $i++) {
+
                 $itemInfo = SalonItem::where('id', $items[$i])->first();
 
                 $store_items = SalonPurchaseItem::where('purchase_id', $pid)->first();
-                if($store_items && $store_items->id) {
+                if ($store_items && $store_items->id) {
                     $store_items->item_id = $items[$i];
                     $store_items->unit_id = $itemInfo->unit_id;
                     $store_items->buy_price = $buyPrices[$i];
@@ -391,7 +399,7 @@ class SalonPurchaseController extends Controller
                     $store_items->subtotal = $buyPrices[$i] * $quantities[$i];
                     $store_items->status = 1;
                     $store_items->save();
-                }else {
+                } else {
                     $store_items = new SalonPurchaseItem();
                     $store_items->invoice_no = $store_purchase->invoice_no;
                     $store_items->item_id = $items[$i];
@@ -403,16 +411,15 @@ class SalonPurchaseController extends Controller
                     $store_items->status = 1;
                     $store_items->save();
                 }
-
             }
 
-            for($i = 0; $i < $itemLength; $i++) {
+            for ($i = 0; $i < $itemLength; $i++) {
 
                 $itemInfo = SalonItem::where('id', $items[$i])->first();
 
                 //update inventory logs
                 $update_inventory = SalonInventoryLog::where('invoice_no', $store_purchase->invoice_no)->first();
-                if($update_inventory && $update_inventory->id) {
+                if ($update_inventory && $update_inventory->id) {
                     $update_inventory->item_id = $items[$i];
                     $update_inventory->branch_id = $request->branch_id;
                     $update_inventory->unit_id = $itemInfo->unit_id;
@@ -421,7 +428,7 @@ class SalonPurchaseController extends Controller
                     $update_inventory->quantity = $quantities[$i];
                     $update_inventory->subtotal = $buyPrices[$i] * $quantities[$i];
                     $update_inventory->save();
-                }else {
+                } else {
                     $store_inventory = new SalonInventoryLog();
                     $store_inventory->invoice_no = $store_purchase->invoice_no;
                     $store_inventory->branch_id = $request->branch_id;
@@ -433,33 +440,57 @@ class SalonPurchaseController extends Controller
                     $store_inventory->subtotal = $buyPrices[$i] * $quantities[$i];
                     $store_inventory->save();
                 }
-                
             }
 
             Toastr::success('Purchase updated successfully');
             return redirect()->route('superadmin.salon.managePurchase');
-        }else {
+        } else {
             Toastr::error('Something was wrong');
             return redirect()->back();
         }
     }
 
 
-    public function salonPurchaseDetails($id) {
+    public function salonPurchaseDetails($id)
+    {
         $purchase = SalonPurchase::where('id', $id)->first();
         $pitems = SalonPurchaseItem::where('purchase_id', $id)->get();
         $items = SalonItem::where('status', 1)->get();
         $units = Unit::where('status', 1)->get();
-        return view('backEnd.salon.purchase.details', compact('purchase','pitems','items','units'));
+        return view('backEnd.salon.purchase.details', compact('purchase', 'pitems', 'items', 'units'));
     }
 
     // report
-    public function salonPurchaseReport() {
-        $salon_purchase_items = SalonPurchaseItem::where('status', 1)->with('salon_item')->get();
-        return $salon_purchase_items;
-        return view('backEnd.salon.purchase.report');
+    public function salonPurchaseReport()
+    {
+        //$salon_purchase_items = SalonPurchaseItem::groupBy('item_id')->selectRaw('sum(quantity) as sum, item_id')->pluck('sum','item_id');
+        //$salon_purchase_items = SalonPurchaseItem::groupBy('item_id')->selectRaw('sum(quantity) as sum, item_id')->pluck('sum','item_id');
+        $salon_purchase_items = SalonPurchaseItem::where('status', 1)->with('salon_item')->groupBy('item_id', 'unit_id')->get();
+        //return $salon_purchase_items;
+
+        $purchase_datas = [];
+        foreach($salon_purchase_items as $item) {
+            $temp = [];
+            $total = 0;
+            $items_purchase = SalonPurchaseItem::where('item_id', $item->item_id)->where('unit_id', $item->unit_id)->get();
+            foreach($items_purchase as $items) {
+                $temp['code'] = $items->salon_item->id ?? '';
+                $temp['item_name'] = $items->salon_item->name ?? '';
+                $temp['unit'] = $items->salon_item->unit->unit_type ?? '';
+                $total = $total + $items->quantity ?? 0;
+                $temp['buy_quantity'] = $total;
+
+                $salon_inventory = SalonInventoryLog::where('item_id', $items->item_id)->where('unit_id', $items->unit_id)->where('origin', 'Salon')->where('in_out', 'Out')->get();
+                $temp['sale_quantity'] = $salon_inventory->sum('quantity');
+                $temp['stock_quantity'] = $total - $salon_inventory->sum('quantity');
+            }
+            array_push($purchase_datas, $temp);
+        }
+        // echo "<pre>";
+        // print_r($purchase_datas);
+        // echo "</pre>";
+        return view('backEnd.salon.purchase.report', compact('purchase_datas'));
     }
 
     /*.................purchase section.................*/
-
 }

@@ -154,4 +154,11 @@ class SupplierController extends Controller
 
         return view('backEnd.supplier.details', compact('supplier'));
     }
+
+    // supplier ledger
+    public function supplierLedger() {
+        return view('backEnd.supplier.ledger');
+    }
+
+
 }
